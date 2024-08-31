@@ -586,6 +586,10 @@ void send_probe(
     // this is intentional.  It is no use exhausting the very last
     // open port. Max 10 retries would've been acceptable too I think.
     for (trytimes=MIN_PORT; trytimes < MAX_PORT; trytimes++) {
+        if (param->protocol == IPPROTO_TCP && param->local_port) {
+            sleep(5);
+            probe->sequence = param->local_port;
+        }
 
         packet_size = construct_packet(net_state, &probe->platform.socket,
                          probe, packet, PACKET_BUFFER_SIZE,
@@ -599,6 +603,9 @@ void send_probe(
         if ((errno != EADDRINUSE) && (errno != EADDRNOTAVAIL)) {
             break; // no retry
         }
+
+        if (param->protocol == IPPROTO_TCP && param->local_port)
+            break;
 
      	probe->sequence = net_state->platform.next_sequence++;
 
